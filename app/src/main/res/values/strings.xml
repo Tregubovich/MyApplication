@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">My Application</string>
+    <string name="input_hint">Текст или номер телефона</string>
+    <string name="open_second">Открыть вторую Activity</string>
+    <string name="dial">Позвонить другу</string>
+    <string name="share">Поделиться текстом</string>
+    <string name="share_chooser">Поделиться через…</string>
+    <string name="error_empty">Заполните поле</string>
+    <string name="error_phone">Введите корректный номер телефона (3–15 цифр)</string>
+    <string name="error_no_app">Нет приложения для этого действия</string>
 </resources>
