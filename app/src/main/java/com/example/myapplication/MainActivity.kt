@@ -1,47 +1,62 @@
 package com.example.myapplication
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.myapplication.ui.theme.MyApplicationTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            MyApplicationTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+        setContentView(R.layout.activity_main)
+
+        val input = findViewById<EditText>(R.id.input)
+        fun validatedText(): String? {
+            val text = input.text.toString()
+            if (text.isBlank()) {
+                input.error = getString(R.string.error_empty)
+                input.requestFocus()
+                return null
             }
+            input.error = null
+            return text
+        }
+
+        findViewById<Button>(R.id.open_second).setOnClickListener {
+            val text = validatedText() ?: return@setOnClickListener
+            startActivity(Intent(this, SecondActivity::class.java).apply {
+                putExtra("text", text)
+            })
+        }
+        findViewById<Button>(R.id.dial).setOnClickListener {
+            val text = validatedText() ?: return@setOnClickListener
+            val phone = text.trim().replace(Regex("[() -]"), "")
+            if (!Regex("\\+?[0-9]{3,15}").matches(phone)) {
+                input.error = getString(R.string.error_phone)
+                input.requestFocus()
+                return@setOnClickListener
+            }
+            openExternal(Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", phone, null)))
+        }
+        findViewById<Button>(R.id.share).setOnClickListener {
+            val text = validatedText() ?: return@setOnClickListener
+            val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, text)
+            }
+            openExternal(Intent.createChooser(sendIntent, getString(R.string.share_chooser)))
         }
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    MyApplicationTheme {
-        Greeting("Android")
+    private fun openExternal(intent: Intent) {
+        try {
+            startActivity(intent)
+        } catch (_: ActivityNotFoundException) {
+            Toast.makeText(this, R.string.error_no_app, Toast.LENGTH_LONG).show()
+        }
     }
 }
